@@ -1,0 +1,7 @@
+usbd_msc_storage_template.c:97:8:STORAGE_Init	16	static
+usbd_msc_storage_template.c:109:8:STORAGE_GetCapacity	24	static
+usbd_msc_storage_template.c:123:9:STORAGE_IsReady	16	static
+usbd_msc_storage_template.c:135:9:STORAGE_IsWriteProtected	16	static
+usbd_msc_storage_template.c:147:8:STORAGE_Read	24	static
+usbd_msc_storage_template.c:159:8:STORAGE_Write	24	static
+usbd_msc_storage_template.c:171:8:STORAGE_GetMaxLun	4	static

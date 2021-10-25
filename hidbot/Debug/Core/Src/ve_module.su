@@ -1,0 +1,4 @@
+ve_module.c:21:17:ve_is_pg_erased	24	static
+ve_module.c:45:13:ve_pgs_prep	24	static
+ve_module.c:91:13:ve_prg_blks	96	static
+ve_module.c:125:9:ve_operate	16	static

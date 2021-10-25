@@ -1,0 +1,14 @@
+freertos.c:137:6:vApplicationGetIdleTaskMemory	24	static
+freertos.c:150:6:vApplicationGetTimerTaskMemory	24	static
+freertos.c:164:6:MX_FREERTOS_Init	216	static
+freertos.c:235:6:StartDefaultTask	24	static
+freertos.c:294:6:Start_Ram_MSD_Task	16	static
+freertos.c:313:6:delay_click_event_tmr_Callback	24	static
+freertos.c:326:6:periodic_click_event_Callback	24	static
+freertos.c:358:6:Start_Hid_Task	24	static
+freertos.c:376:6:Start_Usb_Task	16	static
+freertos.c:386:6:Start_Mouse_Task	32	static
+freertos.c:461:9:parse_cmd	48	static
+freertos.c:596:9:parse_ram_msd	40	static
+freertos.c:658:13:GetPointerData	4	static
+freertos.c:665:9:init_hid	4	static
