@@ -322,35 +322,136 @@ void delay_click_event_tmr_Callback(void const * argument) {
 
 }
 
+///////////////////////////////////test1
+//https://github.com/diabolo38/HidKbd/blob/0e52533ec51829199b133653764f8e321ec5b413/Src/main.c
+//#define HID_MEDIA_REPORT  2
+//#define HID_MEDIA_PAUSE  0xB1 // pause
+//#define HID_MEDIA_RECORD  0xB3
+//#define HID_MEDIA_SCAN_NEXT 0xB5
+//#define HID_MEDIA_SCAN_PREV 0xB6
+//#define HID_MEDIA_STOP  0xB7
+//#define HID_MEDIA_EJECT 0xB8
+//#define HID_MEDIA_VOL_UP 0xE9
+//#define HID_MEDIA_VOL_DONW 0xEA
+//#define HID_MEDIA_PLAY  0xCD // play/pause
+//
+//
+//void  kbd_vol_up(){
+//    uint8_t report[3];
+//    report[0]= HID_MEDIA_REPORT;
+//    report[1]= 0xE9;
+//    report[2]= 0x00;
+//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
+//    HAL_Delay(30);
+//
+//    report[0]= HID_MEDIA_REPORT;
+//    report[1]= 0x00;
+//    report[2]= 0x00;
+//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
+//
+//}
+//
+//
+//
+//void  kbd_vol_down(){
+//    uint8_t report[3];
+//    report[0]= HID_MEDIA_REPORT;
+//
+//    report[1]= HID_MEDIA_VOL_DONW;
+//
+//    report[2]= 0x00;
+//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
+//    HAL_Delay(30);
+//
+//    report[0]= HID_MEDIA_REPORT;
+//    report[1]= 0x00;
+//    report[2]= 0x00;
+//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
+//
+//}
+//
+//void kbd_do_media(int code){
+//    uint8_t report[3];
+//    report[0]= HID_MEDIA_REPORT;
+//    report[1]= code;
+//    report[2]= 0x00;
+//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
+//    HAL_Delay(30);
+//
+//    report[0]= HID_MEDIA_REPORT;
+//    report[1]= 0x00;
+//    report[2]= 0x00;
+//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
+//    HAL_Delay(20);
+//
+//}
+
+///////////////////////////////////
+
+
 /* periodic_click_event_Callback function */
 void periodic_click_event_Callback(void const * argument) {
 
-	static uint8_t * keyboardHID_p = &(hid_state.keyboardHID.k_a);
-	static uint8_t bit_select = 0x01;
-	static uint8_t i = 0;
+//	static uint8_t * keyboardHID_p = &(hid_state.keyboardHID.k_a);
+//	static uint8_t bit_select = 0x01;
+//	static uint8_t i = 0;
+//
+//	*(keyboardHID_p + i) =
+//			((keys[i].states[keys_tic]) & bit_select) ?
+//					(keys[i].name - 0x5D) : (0); //key_a = a;
+//
+//	if (i == KEYS_SIZE - 1) //passed all the keys
+//			{
+//		i = 0;
+//
+//		while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
+//				sizeof(keyboardHID_t)) != USBD_OK); //add a tick
+//
+//
+//	}
+//	if (bit_select == 0x80) {
+//		(keys_tic == STATES_LEN - 1) ? (keys_tic = 0) : (keys_tic++);
+//		bit_select = 0x01;
+//	} else {
+//		bit_select = bit_select << 1;
+//	}
+//
+//	i++;
+////////////////////////////////
+//	 //hid_state.keyboardHID.modifiers = 2;//make the system crazy 0x84;//0x5;
+//	 hid_state.keyboardHID.k_a = K_BUTTON_NOP;//0x80 - 0x5D ;//'a' - 0x5D;
+//	//hid_state.keyboardHID.k_a =  'a' - 0x5D;
+//	while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
+//			sizeof(keyboardHID_t)) != USBD_OK); //add a tick
+//	osDelay(100);
+//	hid_state.keyboardHID.k_a = 0;
+//	while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
+//			sizeof(keyboardHID_t)) != USBD_OK); //add a tick
+/////////////////////////////////////////
+	//WHEEL
+	//hid_state.mouseHID.buttons = WHEEL;
+//	hid_state.mouseHID.wheel+=1;
+//	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
+//						(uint8_t *) &hid_state.mouseHID, sizeof(mouseHID_t));
 
-	*(keyboardHID_p + i) =
-			((keys[i].states[keys_tic]) & bit_select) ?
-					(keys[i].name - 0x5D) : (0); //key_a = a;
-
-	if (i == KEYS_SIZE - 1) //passed all the keys
-			{
-		i = 0;
-
-		while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
-				sizeof(keyboardHID_t)) != USBD_OK)
-			; //add a tick
-
-
+	//osDelay(100);
+	static int8_t i = 1;
+	//hid_state.mouseHID.x+=100;
+	hid_state.curr_hid_type = MOUSE_TYPE;
+		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
+							(uint8_t *) &hid_state.mouseHID, sizeof(mouseHID_t));
+	if(i == 1){
+		i = -1;
+		hid_state.mouseHID.x+=1;
+	}else{
+		i = 1;
+		hid_state.mouseHID.x-=1;
 	}
-	if (bit_select == 0x80) {
-		(keys_tic == STATES_LEN - 1) ? (keys_tic = 0) : (keys_tic++);
-		bit_select = 0x01;
-	} else {
-		bit_select = bit_select << 1;
-	}
+	//osDelay(100);
 
-	i++;
+//	kbd_vol_up();
+//	osDelay(100);
+//	kbd_vol_down();
 
 }
 
@@ -363,7 +464,7 @@ void Start_Hid_Task(void const * argument) {
 		osDelay(100);
 
 		if (hid_usb_init == 1) {
-			osTimerStart(periodic_click_event_tmrHandle, 10);
+			osTimerStart(periodic_click_event_tmrHandle, 100000);
 			vTaskSuspend(NULL);
 
 		}
