@@ -81,6 +81,7 @@ osMessageQId Usb_QueueHandle;
 osMessageQId Hid_QueueHandle;
 osTimerId delay_click_event_tmrHandle;
 osTimerId periodic_click_event_tmrHandle;
+osTimerId Buttons_Off_tmrHandle;
 osMutexId Ram_MSD_MutexHandle;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
@@ -111,6 +112,7 @@ void Start_Hid_Task(void const * argument);
 void Start_Ram_MSD_Task(void const * argument);
 void delay_click_event_tmr_Callback(void const * argument);
 void periodic_click_event_Callback(void const * argument);
+void Buttons_Off_Callback(void const * argument);
 
 static void GetPointerData(void);
 uint8_t parse_cmd(char cmd[]);
@@ -125,10 +127,12 @@ extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* GetIdleTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
+		StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize);
 
 /* GetTimerTaskMemory prototype (linked to static allocation support) */
-void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize );
+void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
+		StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize);
 
 /* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
 static StaticTask_t xIdleTaskTCBBuffer;
@@ -147,35 +151,35 @@ void vApplicationGetIdleTaskMemory(StaticTask_t **ppxIdleTaskTCBBuffer,
 static StaticTask_t xTimerTaskTCBBuffer;
 static StackType_t xTimerStack[configTIMER_TASK_STACK_DEPTH];
 
-void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer, StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize )
-{
-  *ppxTimerTaskTCBBuffer = &xTimerTaskTCBBuffer;
-  *ppxTimerTaskStackBuffer = &xTimerStack[0];
-  *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
-  /* place for user code */
+void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
+		StackType_t **ppxTimerTaskStackBuffer, uint32_t *pulTimerTaskStackSize) {
+	*ppxTimerTaskTCBBuffer = &xTimerTaskTCBBuffer;
+	*ppxTimerTaskStackBuffer = &xTimerStack[0];
+	*pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+	/* place for user code */
 }
 /* USER CODE END GET_TIMER_TASK_MEMORY */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
 void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
+	/* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+	/* USER CODE END Init */
 
-  /* USER CODE BEGIN RTOS_MUTEX */
+	/* USER CODE BEGIN RTOS_MUTEX */
 	osMutexDef(Ram_MSD_Mutex);
 	Ram_MSD_MutexHandle = osMutexCreate(osMutex(Ram_MSD_Mutex));
-  /* USER CODE END RTOS_MUTEX */
+	/* USER CODE END RTOS_MUTEX */
 
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
+	/* USER CODE BEGIN RTOS_SEMAPHORES */
 	/* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
+	/* USER CODE END RTOS_SEMAPHORES */
 
-  /* USER CODE BEGIN RTOS_TIMERS */
+	/* USER CODE BEGIN RTOS_TIMERS */
 	/* definition and creation of delay_click_event_tmr */
 	osTimerDef(delay_click_event_tmr, delay_click_event_tmr_Callback);
 	delay_click_event_tmrHandle = osTimerCreate(osTimer(delay_click_event_tmr),
@@ -186,23 +190,28 @@ void MX_FREERTOS_Init(void) {
 	periodic_click_event_tmrHandle = osTimerCreate(
 			osTimer(periodic_click_event_tmr), osTimerPeriodic, NULL);
 
-  /* USER CODE END RTOS_TIMERS */
+	/*buttons off oneshot time def.*/
+	osTimerDef(buttons_off_tmr, Buttons_Off_Callback);
+	Buttons_Off_tmrHandle = osTimerCreate(osTimer(buttons_off_tmr), osTimerOnce,
+			NULL);
 
-  /* USER CODE BEGIN RTOS_QUEUES */
+	/* USER CODE END RTOS_TIMERS */
+
+	/* USER CODE BEGIN RTOS_QUEUES */
 	osMessageQDef(Usb_Queue, 16, uint16_t);
 	Usb_QueueHandle = osMessageCreate(osMessageQ(Usb_Queue), NULL);
 
 	/* definition and creation of Hid_Queue */
 	osMessageQDef(Hid_Queue, 16, uint16_t);
 	Hid_QueueHandle = osMessageCreate(osMessageQ(Hid_Queue), NULL);
-  /* USER CODE END RTOS_QUEUES */
+	/* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+	/* Create the thread(s) */
+	/* definition and creation of defaultTask */
+	osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+	defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
-  /* USER CODE BEGIN RTOS_THREADS */
+	/* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
 
 	/* definition and creation of Usb_Task */
@@ -221,7 +230,7 @@ void MX_FREERTOS_Init(void) {
 	osThreadDef(Ram_MSD_Task, Start_Ram_MSD_Task, osPriorityNormal, 0, 128);
 	Ram_MSD_TaskHandle = osThreadCreate(osThread(Ram_MSD_Task), NULL);
 
-  /* USER CODE END RTOS_THREADS */
+	/* USER CODE END RTOS_THREADS */
 
 }
 
@@ -232,13 +241,12 @@ void MX_FREERTOS_Init(void) {
  * @retval None
  */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
-{
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN StartDefaultTask */
+void StartDefaultTask(void const * argument) {
+	/* init code for USB_DEVICE */
+	MX_USB_DEVICE_Init();
+	/* USER CODE BEGIN StartDefaultTask */
 
-	hid_usb_init = 1;//HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
+	hid_usb_init = 1; //HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1);
 
 	MX_USB_DEVICE_Init();
 
@@ -254,17 +262,8 @@ void StartDefaultTask(void const * argument)
 				keys[i].type = KEYBOARD_TYPE;
 				keys[i].name = 'a' + i;
 
-				for(uint8_t j = 0; j < STATES_LEN;j++)
-				  keys[i].states[j] =  (i & 1)?(0xFF):(0xFF);//(0xAA); test1
-
-//test1				keys[i].states[0] = *((uint8_t *) (VIRT_EEPROM_ADDR
-//						+ i * STATES_LEN));
-//				keys[i].states[1] = *((uint8_t *) (VIRT_EEPROM_ADDR
-//						+ i * STATES_LEN + 1));
-
-
-
-
+				for (uint8_t j = 0; j < STATES_LEN; j++)
+					keys[i].states[j] = (i & 1) ? (0xFF) : (0xFF);
 
 			}
 
@@ -272,7 +271,6 @@ void StartDefaultTask(void const * argument)
 		}
 
 		if (tst) {
-			//ve_operate();
 			for (uint32_t i = 0; i < 255; i++) {
 				ram_msd[i] = *((uint8_t *) (VIRT_EEPROM_ADDR + i));
 
@@ -284,7 +282,7 @@ void StartDefaultTask(void const * argument)
 
 	}
 
-  /* USER CODE END StartDefaultTask */
+	/* USER CODE END StartDefaultTask */
 }
 
 /* Private application code --------------------------------------------------*/
@@ -322,137 +320,45 @@ void delay_click_event_tmr_Callback(void const * argument) {
 
 }
 
-///////////////////////////////////test1
-//https://github.com/diabolo38/HidKbd/blob/0e52533ec51829199b133653764f8e321ec5b413/Src/main.c
-//#define HID_MEDIA_REPORT  2
-//#define HID_MEDIA_PAUSE  0xB1 // pause
-//#define HID_MEDIA_RECORD  0xB3
-//#define HID_MEDIA_SCAN_NEXT 0xB5
-//#define HID_MEDIA_SCAN_PREV 0xB6
-//#define HID_MEDIA_STOP  0xB7
-//#define HID_MEDIA_EJECT 0xB8
-//#define HID_MEDIA_VOL_UP 0xE9
-//#define HID_MEDIA_VOL_DONW 0xEA
-//#define HID_MEDIA_PLAY  0xCD // play/pause
-//
-//
-//void  kbd_vol_up(){
-//    uint8_t report[3];
-//    report[0]= HID_MEDIA_REPORT;
-//    report[1]= 0xE9;
-//    report[2]= 0x00;
-//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
-//    HAL_Delay(30);
-//
-//    report[0]= HID_MEDIA_REPORT;
-//    report[1]= 0x00;
-//    report[2]= 0x00;
-//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
-//
-//}
-//
-//
-//
-//void  kbd_vol_down(){
-//    uint8_t report[3];
-//    report[0]= HID_MEDIA_REPORT;
-//
-//    report[1]= HID_MEDIA_VOL_DONW;
-//
-//    report[2]= 0x00;
-//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
-//    HAL_Delay(30);
-//
-//    report[0]= HID_MEDIA_REPORT;
-//    report[1]= 0x00;
-//    report[2]= 0x00;
-//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
-//
-//}
-//
-//void kbd_do_media(int code){
-//    uint8_t report[3];
-//    report[0]= HID_MEDIA_REPORT;
-//    report[1]= code;
-//    report[2]= 0x00;
-//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
-//    HAL_Delay(30);
-//
-//    report[0]= HID_MEDIA_REPORT;
-//    report[1]= 0x00;
-//    report[2]= 0x00;
-//    USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 3);
-//    HAL_Delay(20);
-//
-//}
-
-///////////////////////////////////
-
-
 /* periodic_click_event_Callback function */
 void periodic_click_event_Callback(void const * argument) {
 
-//	static uint8_t * keyboardHID_p = &(hid_state.keyboardHID.k_a);
-//	static uint8_t bit_select = 0x01;
-//	static uint8_t i = 0;
+////////////////////////////////////////////////////////////////////////////////////
 //
-//	*(keyboardHID_p + i) =
-//			((keys[i].states[keys_tic]) & bit_select) ?
-//					(keys[i].name - 0x5D) : (0); //key_a = a;
+//	static int8_t i = 1;
 //
-//	if (i == KEYS_SIZE - 1) //passed all the keys
-//			{
-//		i = 0;
-//
-//		while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
-//				sizeof(keyboardHID_t)) != USBD_OK); //add a tick
-//
-//
+//	hid_state.mouseHID.buttons = M_BUTTON_NOP;
+//	hid_state.curr_hid_type = MOUSE_TYPE;
+//		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
+//							(uint8_t *) &hid_state.mouseHID, sizeof(mouseHID_t));
+//	if(i == 1){
+//		i = -1;
+//		hid_state.mouseHID.x=100;
+//	}else{
+//		i = 1;
+//		hid_state.mouseHID.x=-100;
 //	}
-//	if (bit_select == 0x80) {
-//		(keys_tic == STATES_LEN - 1) ? (keys_tic = 0) : (keys_tic++);
-//		bit_select = 0x01;
-//	} else {
-//		bit_select = bit_select << 1;
-//	}
-//
-//	i++;
-////////////////////////////////
-//	 //hid_state.keyboardHID.modifiers = 2;//make the system crazy 0x84;//0x5;
-//	 hid_state.keyboardHID.k_a = K_BUTTON_NOP;//0x80 - 0x5D ;//'a' - 0x5D;
-//	//hid_state.keyboardHID.k_a =  'a' - 0x5D;
-//	while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
-//			sizeof(keyboardHID_t)) != USBD_OK); //add a tick
-//	osDelay(100);
-//	hid_state.keyboardHID.k_a = 0;
-//	while (USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
-//			sizeof(keyboardHID_t)) != USBD_OK); //add a tick
-/////////////////////////////////////////
-	//WHEEL
-	//hid_state.mouseHID.buttons = WHEEL;
-//	hid_state.mouseHID.wheel+=1;
-//	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
-//						(uint8_t *) &hid_state.mouseHID, sizeof(mouseHID_t));
+///////////////////////////////////////////////////////////////////////////////////////
+	hid_state.curr_hid_type = KEYBOARD_TYPE;
+	hid_state.keyboardHID.k_a = USB_HID_KEY_A;
+	hid_state.keyboardHID.k_b = USB_HID_KEY_B;
+	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
+			(uint8_t *) &hid_state.keyboardHID, sizeof(keyboardHID_t));
 
-	//osDelay(100);
-	static int8_t i = 1;
-	//hid_state.mouseHID.x+=100;
-	hid_state.curr_hid_type = MOUSE_TYPE;
-		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
-							(uint8_t *) &hid_state.mouseHID, sizeof(mouseHID_t));
-	if(i == 1){
-		i = -1;
-		hid_state.mouseHID.x+=1;
-	}else{
-		i = 1;
-		hid_state.mouseHID.x-=1;
-	}
-	//osDelay(100);
+	osTimerStart(Buttons_Off_tmrHandle, 100);
 
-//	kbd_vol_up();
-//	osDelay(100);
-//	kbd_vol_down();
+}
 
+/**
+ * Callback to switch buttons off.
+ * @param argument
+ */
+void Buttons_Off_Callback(void const * argument) {
+	hid_state.curr_hid_type = KEYBOARD_TYPE;
+	hid_state.keyboardHID.k_a = 0;
+	hid_state.keyboardHID.k_b = 0;
+	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
+			(uint8_t *) &hid_state.keyboardHID, sizeof(keyboardHID_t));
 }
 
 /* Start_Hid_Task function */
@@ -464,7 +370,8 @@ void Start_Hid_Task(void const * argument) {
 		osDelay(100);
 
 		if (hid_usb_init == 1) {
-			osTimerStart(periodic_click_event_tmrHandle, 100000);
+			//osTimerStart(periodic_click_event_tmrHandle, 100000);
+			osTimerStart(periodic_click_event_tmrHandle, 1000); //test1
 			vTaskSuspend(NULL);
 
 		}
@@ -498,45 +405,37 @@ void Start_Mouse_Task(void const * argument) {
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case M_BUTTON_1: {
 				hid_state.mouseHID.buttons = M_BUTTON_1;
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case M_BUTTON_2: {
 				hid_state.mouseHID.buttons = M_BUTTON_2;
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case M_BUTTON_3: {
 				hid_state.mouseHID.buttons = M_BUTTON_3;
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case WHEEL: {
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case M_X: {
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case M_Y: {
 				hid_state.curr_hid_type = MOUSE_TYPE;
 				break;
 			}
-
 			case KEYBOARD_TYPE: {
 				hid_state.curr_hid_type = KEYBOARD_TYPE;
 				break;
 			}
-
 			}
 
 		if (hid_state.curr_hid_type == MOUSE_TYPE)
@@ -547,11 +446,8 @@ void Start_Mouse_Task(void const * argument) {
 			USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, &hid_state.keyboardHID,
 					sizeof(keyboardHID_t));
 			osTimerStart(delay_click_event_tmrHandle, 500);
-
 		}
-
 	}
-
 }
 
 //TODO add cklick / press logic
@@ -694,8 +590,7 @@ uint8_t parse_cmd(char cmd[]) {
 
 }
 
-uint8_t parse_ram_msd()
-{
+uint8_t parse_ram_msd() {
 	char delimiter = ';';
 	char cmd[CMD_LEN];
 	uint8_t cmd_i = 0;
@@ -705,51 +600,43 @@ uint8_t parse_ram_msd()
 
 	static uint16_t cur_ind_in_ram = 0;
 
-	if(cur_ind_in_ram >= RAM_STORAGESIZ_USER - pattern_len)
+	if (cur_ind_in_ram >= RAM_STORAGESIZ_USER - pattern_len)
 		cur_ind_in_ram = 0;
 
-	for(uint16_t i= cur_ind_in_ram; i < RAM_STORAGESIZ_USER - pattern_len; i++)
-	{
+	for (uint16_t i = cur_ind_in_ram; i < RAM_STORAGESIZ_USER - pattern_len;
+			i++) {
 		//check for EOF
-		for(uint8_t k =0; k < pattern_len; k++)
-		{
-			if(ram_msd[i+k] != pattern[k])
-			{
+		for (uint8_t k = 0; k < pattern_len; k++) {
+			if (ram_msd[i + k] != pattern[k]) {
 				break;
 			}
 
-			if(k == pattern_len -1)
-			{
+			if (k == pattern_len - 1) {
 				cur_ind_in_ram = 0;
 				return 0;
 			}
 		}
 
-		if(ram_msd[i]!=delimiter)
-		{
+		if (ram_msd[i] != delimiter) {
 			cmd[cmd_i] = ram_msd[i];
 			cmd_i++;
 
-			if(cmd_i >= CMD_LEN )
+			if (cmd_i >= CMD_LEN)
 				return ERR_TOO_LNG_CMD; //error too long command
-		}
-		else
-		{
-			cmd[cmd_i+1]='\0';
-			cmd_i =0;
+		} else {
+			cmd[cmd_i + 1] = '\0';
+			cmd_i = 0;
 			parse_cmd(cmd);
 			osDelay(1000); //change delete
 
-			cur_ind_in_ram = i+1;
+			cur_ind_in_ram = i + 1;
 			return 0;
-
 
 		}
 
 	}
 	return 0;
 }
-
 
 /**
  * @param  pbuf: Pointer to report
