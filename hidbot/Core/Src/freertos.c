@@ -53,6 +53,17 @@ typedef struct {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+//NF_20211115_HID_COMMAND=======================================================
+#define HID_MODIFIER     (0x01)
+#define HID_TEXT         (0x02)
+#define HID_MOUSE        (0x03)
+#define HID_CMD_JUMP     (0x04)
+#define HID_CMD_PAUSE    (0x05)
+
+#define HID_INPUT_EXAMPLE_TEXT     HID_TEXT,11,'i','n','t',' ','m','a','i','n','(',')','{'
+#define HID_INPUT_EXAMPLE_MODIFIER HID_MODIFIER,USB_HID_MODIFIER_LEFT_SHIFT,0,0,27,10
+
+//NF_20211115_HID_COMMAND===============================================E=======
 #define CURSOR_STEP         5
 
 //commands
@@ -67,6 +78,7 @@ typedef struct {
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 #define KEYS_SIZE   (USB_HID_KEY_Z - USB_HID_KEY_A + 1)
+
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -81,7 +93,20 @@ osMessageQId Usb_QueueHandle;
 osMessageQId Hid_QueueHandle;
 osTimerId delay_click_event_tmrHandle;
 osTimerId periodic_click_event_tmrHandle;
-osTimerId Buttons_Off_tmrHandle;
+osTimerId Buttons_Off_Tmr_Handle;
+
+
+//NF_20211115_HID_COMMAND=======================================================
+osTimerId Left_Ctrl_Off_Tmr_Handle;
+osTimerId Left_Shift_Off_Tmr_Handle;
+osTimerId Left_Alt_Off_Tmr_handle;
+osTimerId Left_Gui_Off_Tmr_Handle;
+osTimerId right_ctrl_off_tmrhandle;
+osTimerId right_shift_off_tmrhandle;
+osTimerId right_alt_off_tmrhandle;
+osTimerId right_gui_off_tmrhandle;
+//NF_20211115_HID_COMMAND==============================================Е========
+
 osMutexId Ram_MSD_MutexHandle;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
@@ -100,6 +125,15 @@ uint32_t action_time = 0;
 key keys[KEYS_SIZE];
 uint16_t keys_tic = 0;
 
+//NF_20211115_HID_COMMAND=======================================================
+
+#define MEM_SIM_LEN 255
+uint8_t memory_simulator[MEM_SIM_LEN] = { HID_INPUT_EXAMPLE_TEXT,
+		HID_INPUT_EXAMPLE_MODIFIER, 0, 0, 0 };
+uint8_t mSimCrntImd = 0;/*it is current index of mem. sim*/
+
+//NF_20211115_HID_COMMAND==================E====================================
+
 /* USER CODE END Variables */
 osThreadId defaultTaskHandle;
 
@@ -113,6 +147,7 @@ void Start_Ram_MSD_Task(void const * argument);
 void delay_click_event_tmr_Callback(void const * argument);
 void periodic_click_event_Callback(void const * argument);
 void Buttons_Off_Callback(void const * argument);
+void Modifier_Off_Tmr_Callback(void const * argument);
 
 static void GetPointerData(void);
 uint8_t parse_cmd(char cmd[]);
@@ -165,6 +200,7 @@ void vApplicationGetTimerTaskMemory(StaticTask_t **ppxTimerTaskTCBBuffer,
  * @param  None
  * @retval None
  */
+const uint32_t test1 = 12345;
 void MX_FREERTOS_Init(void) {
 	/* USER CODE BEGIN Init */
 
@@ -192,8 +228,37 @@ void MX_FREERTOS_Init(void) {
 
 	/*buttons off oneshot time def.*/
 	osTimerDef(buttons_off_tmr, Buttons_Off_Callback);
-	Buttons_Off_tmrHandle = osTimerCreate(osTimer(buttons_off_tmr), osTimerOnce,
-			NULL);
+	Buttons_Off_Tmr_Handle = osTimerCreate(osTimer(buttons_off_tmr), osTimerOnce,
+	NULL);
+//NF_20211115_HID_COMMAND=======================================================
+
+	osTimerDef(left_ctrl_off_tmr, Modifier_Off_Tmr_Callback);
+	Left_Ctrl_Off_Tmr_Handle = osTimerCreate(osTimer(left_ctrl_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_LEFT_CTRL);
+	osTimerDef(left_shift_off_tmr, Modifier_Off_Tmr_Callback);
+	Left_Shift_Off_Tmr_Handle = osTimerCreate(osTimer(left_shift_off_tmr),
+			osTimerOnce,(void*) &test1 /*USB_HID_MODIFIER_LEFT_SHIFT*/);
+
+
+	osTimerDef(left_alt_off_tmr, Modifier_Off_Tmr_Callback);
+	Left_Alt_Off_Tmr_handle = osTimerCreate(osTimer(left_alt_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_LEFT_ALT);
+	osTimerDef(left_gui_off_tmr, Modifier_Off_Tmr_Callback);
+	Left_Gui_Off_Tmr_Handle = osTimerCreate(osTimer(left_gui_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_LEFT_GUI);
+	osTimerDef(	right_ctrl_off_tmr, Modifier_Off_Tmr_Callback);
+	right_ctrl_off_tmrhandle = osTimerCreate(osTimer(right_ctrl_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_RIGHT_CTRL);
+	osTimerDef(right_shift_off_tmr, Modifier_Off_Tmr_Callback);
+	right_shift_off_tmrhandle = osTimerCreate(osTimer(right_shift_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_RIGHT_SHIFT);
+	osTimerDef(right_alt_off_tmr, Modifier_Off_Tmr_Callback);
+	right_alt_off_tmrhandle = osTimerCreate(osTimer(right_alt_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_RIGHT_ALT);
+	osTimerDef(right_gui_off_tmr, Modifier_Off_Tmr_Callback);
+	right_gui_off_tmrhandle = osTimerCreate(osTimer(right_gui_off_tmr), osTimerOnce,
+			(void *)USB_HID_MODIFIER_RIGHT_GUI);
+//NF_20211115_HID_COMMAND==============================================Е========
 
 	/* USER CODE END RTOS_TIMERS */
 
@@ -320,6 +385,10 @@ void delay_click_event_tmr_Callback(void const * argument) {
 
 }
 
+//test1
+#define TEST_STR_LEN 12
+char test_str[TEST_STR_LEN] = "osalexandeko";
+
 /* periodic_click_event_Callback function */
 void periodic_click_event_Callback(void const * argument) {
 
@@ -339,13 +408,18 @@ void periodic_click_event_Callback(void const * argument) {
 //		hid_state.mouseHID.x=-100;
 //	}
 ///////////////////////////////////////////////////////////////////////////////////////
+	static uint16_t i = 0;
 	hid_state.curr_hid_type = KEYBOARD_TYPE;
-	hid_state.keyboardHID.k_a = USB_HID_KEY_A;
-	hid_state.keyboardHID.k_b = USB_HID_KEY_B;
+	hid_state.keyboardHID.k_a = test_str[i++] - 0x5D;
+	hid_state.keyboardHID.modifiers = USB_HID_MODIFIER_LEFT_SHIFT;
+	if (TEST_STR_LEN <= i) {
+		i = 0;
+	}
+	//hid_state.keyboardHID.k_b = USB_HID_KEY_B;
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
 			(uint8_t *) &hid_state.keyboardHID, sizeof(keyboardHID_t));
 
-	osTimerStart(Buttons_Off_tmrHandle, 100);
+	osTimerStart(Buttons_Off_Tmr_Handle, 100);
 
 }
 
@@ -354,27 +428,125 @@ void periodic_click_event_Callback(void const * argument) {
  * @param argument
  */
 void Buttons_Off_Callback(void const * argument) {
-	hid_state.curr_hid_type = KEYBOARD_TYPE;
+	//hid_state.curr_hid_type = KEYBOARD_TYPE;
 	hid_state.keyboardHID.k_a = 0;
-	hid_state.keyboardHID.k_b = 0;
+	//hid_state.keyboardHID.k_b = 0;
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS,
 			(uint8_t *) &hid_state.keyboardHID, sizeof(keyboardHID_t));
 }
 
+
+/*******************************************************************************
+ * NF_20211115_HID_COMMAND
+ * Callback to switch modifiers off.
+ * @param argument
+ ******************************************************************************/
+void Modifier_Off_Tmr_Callback(void const * argument){
+	uint32_t* mod_type_p = (uint8_t*)pvTimerGetTimerID((TimerHandle_t)argument);
+	uint32_t  mod_type = *mod_type_p;
+	hid_state.keyboardHID.modifiers &=~mod_type;
+}
+
+
+
 /* Start_Hid_Task function */
 void Start_Hid_Task(void const * argument) {
-	uint8_t * keyboardHID_p = &(hid_state.keyboardHID.k_a);
-	static uint8_t bit_select = 0x01;
+	//uint8_t * keyboardHID_p = &(hid_state.keyboardHID.k_a);
+	//static uint8_t bit_select = 0x01;
+
+	//osTimerStart(Left_Shift_Off_Tmr_Handle, 1000);
+
+	osDelay(100);
 	/* Infinite loop */
 	for (;;) {
-		osDelay(100);
+		//test1
+		osDelay(3000);
+		osTimerStart(Left_Shift_Off_Tmr_Handle, 1000);
 
+//NF_20211115_HID_COMMAND=======================================================
 		if (hid_usb_init == 1) {
-			//osTimerStart(periodic_click_event_tmrHandle, 100000);
-			osTimerStart(periodic_click_event_tmrHandle, 1000); //test1
-			vTaskSuspend(NULL);
+			uint8_t cmd_type = memory_simulator[mSimCrntImd];
+			//uint8_t cmd_len  = 0;
+			//uint8_t * str_p  = NULL;
+
+			switch (cmd_type) {
+
+			case HID_MODIFIER: {
+				uint8_t mod_type = memory_simulator[mSimCrntImd + 1];
+				uint32_t mod_period = (memory_simulator[mSimCrntImd + 1] << 24)
+						| (memory_simulator[mSimCrntImd + 2] << 16)
+						| (memory_simulator[mSimCrntImd + 3] << 8)
+				        | memory_simulator[mSimCrntImd + 4] ;
+
+				switch (mod_type){
+					case USB_HID_MODIFIER_LEFT_CTRL: {
+						break;
+					}
+					case USB_HID_MODIFIER_LEFT_SHIFT: {
+						break;
+					}
+					case USB_HID_MODIFIER_LEFT_ALT: {
+						break;
+					}
+					case USB_HID_MODIFIER_LEFT_GUI: {
+						break;
+					}
+					case USB_HID_MODIFIER_RIGHT_CTRL: {
+						break;
+					}
+					case USB_HID_MODIFIER_RIGHT_SHIFT: {
+						break;
+					}
+					case USB_HID_MODIFIER_RIGHT_ALT: {
+						break;
+					}
+					case USB_HID_MODIFIER_RIGHT_GUI: {
+						break;
+					}
+
+					default: {
+						osDelay(1);
+						break;
+					}
+
+				}
+
+				break;
+			}
+			case HID_TEXT: {
+				break;
+			}
+
+			case HID_MOUSE: {
+				break;
+			}
+
+			case HID_CMD_JUMP: {
+				break;
+			}
+
+			case HID_CMD_PAUSE: {
+				break;
+			}
+
+			default: {
+				osDelay(1);
+				break;
+			}
+
+			}
 
 		}
+
+//NF_20211115_HID_COMMAND============================================E==========
+
+//      osDelay(100);
+//		if (hid_usb_init == 1) {
+//			//osTimerStart(periodic_click_event_tmrHandle, 100000);
+//			osTimerStart(periodic_click_event_tmrHandle, 1000); //test1
+//			vTaskSuspend(NULL);
+//
+//		}
 
 	}
 
