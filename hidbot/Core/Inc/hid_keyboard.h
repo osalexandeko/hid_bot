@@ -65,6 +65,18 @@
 //	int8_t wheel;
 //} mouseHID_t;
 
+
+//NF20211125_MEM_KEY_ENTRY======================================================
+typedef struct {
+	uint8_t  type;
+	uint32_t predelay_ms;
+	uint32_t postdelay_ms;
+	uint8_t  character;
+	uint8_t  modifier;
+	uint8_t  u8_spare;
+} key_memory_entry_t;
+//==============================================================================
+
 // HID Keyboard
 typedef struct __keyboardHID_t
 {
