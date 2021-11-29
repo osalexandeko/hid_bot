@@ -488,9 +488,29 @@ void Buttons_Off_Callback(void const * argument) {
 }
 
 //NF20211125_MEM_KEY_ENTRY======================================================
+typedef enum{
+	HETCS_ENTER,
+	HETCS_EXIT,
+
+} hid_entry_tmr_callback_state;
+
+
 void hid_entry_tmr_callback_0(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[0], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 void hid_entry_tmr_callback_1(void const * argument){
