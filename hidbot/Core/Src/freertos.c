@@ -96,9 +96,18 @@ osTimerId delay_click_event_tmrHandle;
 osTimerId periodic_click_event_tmrHandle;
 osTimerId Buttons_Off_Tmr_Handle;
 
+
+
 //NF20211125_MEM_KEY_ENTRY======================================================
-#define   HID_ENTRY_SZ 10
-osTimerId hid_entry_tmr_handle_arr[HID_ENTRY_SZ];
+
+
+
+#define   HID_ENTRY_TIMERS_NUM 10
+osTimerId hid_entry_tmr_handle_arr[HID_ENTRY_TIMERS_NUM];
+
+typedef void (*hid_entry_tmr_callback_func_ptr_t)(void const * argument);
+
+
 
 
 //NF20211125_MEM_KEY_ENTRY===========E==========================================
@@ -156,8 +165,27 @@ void delay_click_event_tmr_Callback(void const * argument);
 void periodic_click_event_Callback(void const * argument);
 void Buttons_Off_Callback(void const * argument);
 
-void hid_entry_tmr_callback(void const * argument); //NF20211125_MEM_KEY_ENTRY
+//NF20211125_MEM_KEY_ENTRY======================================================
+void hid_entry_tmr_callback_0(void const * argument);
+void hid_entry_tmr_callback_1(void const * argument);
+void hid_entry_tmr_callback_2(void const * argument);
+void hid_entry_tmr_callback_3(void const * argument);
+void hid_entry_tmr_callback_4(void const * argument);
+void hid_entry_tmr_callback_5(void const * argument);
+void hid_entry_tmr_callback_6(void const * argument);
+void hid_entry_tmr_callback_7(void const * argument);
+void hid_entry_tmr_callback_8(void const * argument);
+void hid_entry_tmr_callback_9(void const * argument);
 
+
+hid_entry_tmr_callback_func_ptr_t hid_entry_tmr_callback_array[HID_ENTRY_TIMERS_NUM] =
+		{ hid_entry_tmr_callback_0, hid_entry_tmr_callback_1,
+				hid_entry_tmr_callback_2, hid_entry_tmr_callback_3,
+				hid_entry_tmr_callback_4, hid_entry_tmr_callback_5,
+				hid_entry_tmr_callback_6, hid_entry_tmr_callback_7,
+				hid_entry_tmr_callback_8, hid_entry_tmr_callback_9 };
+
+//NF20211125_MEM_KEY_ENTRY=================E====================================
 //void Modifier_Off_Tmr_Callback(void const * argument);
 
 //static void GetPointerData(void);
@@ -243,12 +271,13 @@ void MX_FREERTOS_Init(void) {
 	NULL);
 
 //NF20211125_MEM_KEY_ENTRY======================================================
-   int i = 0;
    char tmr_name[10];
-   sprintf(tmr_name, "%d",i);
-   osTimerDef(tmr_name , hid_entry_tmr_callback);
-   hid_entry_tmr_handle_arr[i] = osTimerCreate(osTimer(tmr_name), osTimerOnce,
+   for(int i = 0; i < HID_ENTRY_TIMERS_NUM;i++ ){
+	   sprintf(tmr_name, "t%d",i);
+	   const osTimerDef_t tmr_name = { (hid_entry_tmr_callback_array[i]), NULL};
+	   hid_entry_tmr_handle_arr[i] = osTimerCreate(&tmr_name, osTimerOnce,
 				(void *)i);
+   }
 //NF20211125_MEM_KEY_ENTRY=====================E================================
 
 
@@ -458,11 +487,65 @@ void Buttons_Off_Callback(void const * argument) {
 			(uint8_t *) &hid_state.keyboardHID, sizeof(keyboardHID_t));
 }
 
-//NF20211125_MEM_KEY_ENTRY
-void hid_entry_tmr_callback(void const * argument){
-
+//NF20211125_MEM_KEY_ENTRY======================================================
+void hid_entry_tmr_callback_0(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+void hid_entry_tmr_callback_1(void const * argument){
+	int a =0;
+	a++;
+	return;
 }
 
+void hid_entry_tmr_callback_2(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+void hid_entry_tmr_callback_3(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+
+void hid_entry_tmr_callback_4(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+void hid_entry_tmr_callback_5(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+
+void hid_entry_tmr_callback_6(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+void hid_entry_tmr_callback_7(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+
+void hid_entry_tmr_callback_8(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+void hid_entry_tmr_callback_9(void const * argument){
+	int a =0;
+	a++;
+	return;
+}
+
+
+
+//NF20211125_MEM_KEY_ENTRY==========E===========================================
 
 
 ///*******************************************************************************
@@ -477,6 +560,12 @@ void hid_entry_tmr_callback(void const * argument){
 //}
 
 
+//NF20211125_MEM_KEY_ENTRY======================================================
+int process_mem_key_entry(key_memory_entry_t * kmet){
+
+}
+//==============================================================================
+
 
 /* Start_Hid_Task function */
 void Start_Hid_Task(void const * argument) {
@@ -486,6 +575,13 @@ void Start_Hid_Task(void const * argument) {
 	//osTimerStart(Left_Shift_Off_Tmr_Handle, 1000);
 
 	osDelay(100);
+
+	//test1
+	for (int i = 0; i < HID_ENTRY_TIMERS_NUM; i++) {
+
+		osTimerStart(hid_entry_tmr_handle_arr[i], 100 + 10 * i);
+	}
+
 	/* Infinite loop */
 	for (;;) {
 //		//test1
@@ -592,6 +688,10 @@ void Start_Hid_Task(void const * argument) {
 //			vTaskSuspend(NULL);
 //
 //		}
+
+
+
+
 
  	}
 
