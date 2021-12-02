@@ -104,6 +104,10 @@ osTimerId Buttons_Off_Tmr_Handle;
 
 #define   HID_ENTRY_TIMERS_NUM 10
 osTimerId hid_entry_tmr_handle_arr[HID_ENTRY_TIMERS_NUM];
+uint32_t  hid_entry_timer_before_event_delay[HID_ENTRY_TIMERS_NUM] = {0};
+uint32_t  hid_entry_timer_after_event_delay[HID_ENTRY_TIMERS_NUM] = {0};
+uint8_t   hid_entry_timer_keys[HID_ENTRY_TIMERS_NUM] = {0};
+uint8_t   hid_entry_timer_modifiers[HID_ENTRY_TIMERS_NUM] = {0};
 
 typedef void (*hid_entry_tmr_callback_func_ptr_t)(void const * argument);
 
@@ -514,52 +518,169 @@ void hid_entry_tmr_callback_0(void const * argument){
 	return;
 }
 void hid_entry_tmr_callback_1(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[1], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 
 void hid_entry_tmr_callback_2(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[2], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 void hid_entry_tmr_callback_3(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[3], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 
 void hid_entry_tmr_callback_4(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[4], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 void hid_entry_tmr_callback_5(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[5], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 
 void hid_entry_tmr_callback_6(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[6], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 void hid_entry_tmr_callback_7(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[7], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 
 void hid_entry_tmr_callback_8(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[8], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 void hid_entry_tmr_callback_9(void const * argument){
-	int a =0;
-	a++;
+	static hid_entry_tmr_callback_state st = HETCS_ENTER;
+	switch (st) {
+	case HETCS_ENTER: {
+		st = HETCS_EXIT;
+		osTimerStart(hid_entry_tmr_handle_arr[9], 5000);
+		break;
+	}
+	case HETCS_EXIT: {
+		st = HETCS_ENTER;
+		break;
+	}
+	default: {
+		break;
+	}
+	}
 	return;
 }
 
